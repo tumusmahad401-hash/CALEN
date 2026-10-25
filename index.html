@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14181f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Planner">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Mahad’s planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#14181f;--mut:#677084;--line:#e2e5ea;--py:#3b5bdb;--pyb:#e8edff;--ai:#0b8a6f;--aib:#ddf4ec;--ot:#c2410c;--otb:#ffeadb;--nav:#14181f;--navink:#fff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c24;--ink:#eef0f4;--mut:#9aa3b5;--line:#2a303c;--py:#8ea2ff;--pyb:#232b4d;--ai:#4fd1b0;--aib:#14352c;--ot:#ff9a62;--otb:#40251a;--nav:#eef0f4;--navink:#14181f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#181c24;--ink:#eef0f4;--mut:#9aa3b5;--line:#2a303c;--py:#8ea2ff;--pyb:#232b4d;--ai:#4fd1b0;--aib:#14352c;--ot:#ff9a62;--otb:#40251a;--nav:#eef0f4;--navink:#14181f;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:16px}
+body{padding:env(safe-area-inset-top,0px) 0 calc(84px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:22px;font-weight:600;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;min-height:40px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--py);outline-offset:2px}
+.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:12px 0}
+.d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;font-size:12px;color:var(--mut)}
+.d b{font-size:17px;font-weight:600;color:var(--ink)}
+.d.sel{background:var(--ink);border-color:var(--ink)}
+.d.sel,.d.sel b{color:var(--bg)}
+.d.today b{text-decoration:underline}
+.dots{display:flex;gap:3px;height:6px}
+.dots i{width:6px;height:6px;border-radius:50%}
+.sum{color:var(--mut);font-size:14px;margin:4px 0 12px}
+.ev{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;border-left-width:6px}
+.ev .t{font-weight:600}
+.ev .m{font-size:13px;color:var(--mut);margin-top:2px}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.py{border-left-color:var(--py)}.ai{border-left-color:var(--ai)}.ot{border-left-color:var(--ot)}
+.form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;display:grid;gap:10px}
+.form label{display:grid;gap:4px;font-size:13px;color:var(--mut)}
+.form input,.form select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;min-height:40px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:#c92a2a;font-size:13px;min-height:0}
+.empty{color:var(--mut);padding:20px 0;text-align:center}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.col h2{font-size:15px;font-weight:600;margin:0 0 10px}
+.card{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--bg)}
+.card p{margin:0 0 8px}
+.card .acts{margin:0}
+.card button{padding:4px 10px;min-height:34px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
+nav button{flex:1;max-width:240px}
+nav .on{background:var(--nav);color:var(--navink);border-color:var(--nav)}
+.tools{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<nav aria-label="Sections"><button id="tc">Calendar</button><button id="tb">Board</button></nav>
+<script>
+var K='mahad-planner-v1',tab='cal',showForm=false,openEv=null,msg='';
+var NAMES={py:'Blue',ai:'Green',ot:'Orange'};
+function ds(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(x<10?'0':'')+x}
+function pd(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function mins(t){var p=t.split(':');return +p[0]*60+ +p[1]}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function seed(){var t=ds(new Date());return{ev:[{id:1,title:'Python practice',date:t,start:'09:00',end:'11:00',rep:'daily',col:'py',skip:[]},{id:2,title:'AI study and building',date:t,start:'12:00',end:'17:00',rep:'daily',col:'ai',skip:[]}],cards:[{id:3,title:'Python practice',col:0},{id:4,title:'AI study and building',col:0}],nid:5}}
+function load(){try{var s=localStorage.getItem(K);if(s)return JSON.parse(s)}catch(e){}return null}
+var S=load()||seed();
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+var sel=ds(new Date());
+function occurs(e,d){if(d<e.date||e.skip.indexOf(d)>=0)return false;if(e.rep==='none')return d===e.date;var w=pd(d).getDay();return e.rep==='daily'||(w>0&&w<6)}
+function onDay(d){return S.ev.filter(function(e){return occurs(e,d)}).sort(function(a,b){return mins(a.start)-mins(b.start)})}
+function weekStart(d){var x=pd(d),w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return x}
+function fmtH(m){var h=Math.floor(m/60),r=m%60;return h+(r?' h '+r+' min':' h')}
+var DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],COLS=['To do','In progress','Done'];
+function cal(){
+  var ws=weekStart(sel),h='<div class="top"><h1>Calendar</h1><button data-a="today">Today</button></div>';
+  var we=new Date(ws);we.setDate(we.getDate()+6);
+  h+='<div class="row"><button data-a="prev" aria-label="Previous week">←</button><b>'+ws.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' to '+we.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</b><button data-a="next" aria-label="Next week">→</button></div><div class="strip">';
+  for(var i=0;i<7;i++){var x=new Date(ws);x.setDate(x.getDate()+i);var k=ds(x),dots='';
+    onDay(k).slice(0,4).forEach(function(e){dots+='<i style="background:var(--'+e.col+')"></i>'});
+    h+='<button class="d'+(k===sel?' sel':'')+(k===ds(new Date())?' today':'')+'" data-a="day" data-d="'+k+'"><span>'+DOW[i]+'</span><b>'+x.getDate()+'</b><span class="dots">'+dots+'</span></button>'}
+  h+='</div>';
+  var list=onDay(sel),tot=0;list.forEach(function(e){tot+=mins(e.end)-mins(e.start)});
+  h+='<div class="row"><div class="sum">'+pd(sel).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+' · '+fmtH(tot)+' planned</div><button class="pri" data-a="form">'+(showForm?'Close':'Add event')+'</button></div>';
+  if(showForm){h+='<div class="form"><label>Title<input id="f-t" placeholder="Client call"></label><div class="two"><label>Date<input id="f-d" type="date" value="'+sel+'"></label><label>Repeat<select id="f-r"><option value="none">Does not repeat</option><option value="daily">Every day</option><option value="weekdays">Weekdays</option></select></label></div><div class="two"><label>Start<input id="f-s" type="time" value="09:00"></label><label>End<input id="f-e" type="time" value="10:00"></label></div><label>Color<select id="f-c"><option value="py">Blue</option><option value="ai">Green</option><option value="ot">Orange</option></select></label><div class="err" id="f-x" role="alert"></div><button class="pri" data-a="save">Save event</button></div>'}
+  if(!list.length)h+='<div class="empty">Nothing planned for this day. Add an event to start.</div>';
+  list.forEach(function(e){var o=openEv===e.id+sel;
+    h+='<div class="ev '+e.col+'"><div data-a="open" data-i="'+e.id+'" style="cursor:pointer"><div class="t">'+esc(e.title)+'</div><div class="m">'+e.start+' to '+e.end+' · '+fmtH(mins(e.end)-mins(e.start))+(e.rep==='daily'?' · every day':e.rep==='weekdays'?' · weekdays':'')+'</div></div>';
+    if(o){h+='<div class="acts">'+(e.rep!=='none'?'<button data-a="skip" data-i="'+e.id+'">Remove this day</button>':'')+'<button data-a="del" data-i="'+e.id+'">'+(e.rep!=='none'?'Remove all':'Delete')+'</button></div>'}
+    h+='</div>'});
+  h+='<div class="tools"><button data-a="exp">Copy backup</button><button data-a="imp">Restore backup</button></div><div class="sum" id="bk">'+esc(msg)+'</div>';
+  return h}
+function board(){
+  var h='<div class="top"><h1>Board</h1></div><div class="cols">';
+  for(var c=0;c<3;c++){h+='<div class="col"><h2>'+COLS[c]+'</h2>';
+    S.cards.forEach(function(k){if(k.col!==c)return;
+      h+='<div class="card"><p>'+esc(k.title)+'</p><div class="acts">'+(c>0?'<button data-a="cl" data-i="'+k.id+'" aria-label="Move back">←</button>':'')+(c<2?'<button data-a="cr" data-i="'+k.id+'" aria-label="Move forward">→</button>':'')+'<button data-a="cd" data-i="'+k.id+'" aria-label="Delete card">×</button></div></div>'});
+    if(c===0)h+='<div class="form" style="padding:8px;margin:8px 0 0"><input id="nc" placeholder="Add a task" aria-label="New task"><button data-a="ca">Add task</button></div>';
+    h+='</div>'}
+  return h+'</div>'}
+function R(){document.getElementById('app').innerHTML=tab==='cal'?cal():board();
+  document.getElementById('tc').className=tab==='cal'?'on':'';document.getElementById('tb').className=tab==='board'?'on':''}
+function find(a,i){for(var j=0;j<a.length;j++)if(a[j].id==i)return a[j]}
+document.getElementById('tc').onclick=function(){tab='cal';R()};
+document.getElementById('tb').onclick=function(){tab='board';R()};
+document.getElementById('app').onclick=function(ev){
+  var b=ev.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a'),i=b.getAttribute('data-i'),x;
+  if(a==='today'){sel=ds(new Date())}
+  else if(a==='prev'||a==='next'){x=pd(sel);x.setDate(x.getDate()+(a==='next'?7:-7));sel=ds(x)}
+  else if(a==='day'){sel=b.getAttribute('data-d')}
+  else if(a==='form'){showForm=!showForm}
+  else if(a==='open'){openEv=(openEv===i+sel)?null:i+sel}
+  else if(a==='skip'){find(S.ev,i).skip.push(sel);save()}
+  else if(a==='del'){S.ev=S.ev.filter(function(e){return e.id!=i});save()}
+  else if(a==='save'){
+    var t=document.getElementById('f-t').value.trim(),s=document.getElementById('f-s').value,e=document.getElementById('f-e').value,d=document.getElementById('f-d').value,er=document.getElementById('f-x');
+    if(!t){er.textContent='Enter a title.';return}
+    if(!d||!s||!e){er.textContent='Set a date, start, and end.';return}
+    if(mins(e)<=mins(s)){er.textContent='End time must be after the start.';return}
+    S.ev.push({id:S.nid++,title:t,date:d,start:s,end:e,rep:document.getElementById('f-r').value,col:document.getElementById('f-c').value,skip:[]});save();sel=d;showForm=false}
+  else if(a==='exp'){var j=JSON.stringify(S);try{navigator.clipboard.writeText(j).then(function(){msg='Backup copied. Paste it somewhere safe.';R()},function(){msg='Copy was blocked by your browser.';R()})}catch(e2){msg='Copy was blocked by your browser.'}return}
+  else if(a==='imp'){var p=prompt('Paste your backup');if(p){try{var o=JSON.parse(p);if(o.ev&&o.cards){S=o;save();msg='Backup restored.'}else msg='That backup isn’t valid.'}catch(e3){msg='That backup isn’t valid.'}}}
+  else if(a==='ca'){var n=document.getElementById('nc').value.trim();if(n){S.cards.push({id:S.nid++,title:n,col:0});save()}}
+  else if(a==='cl'){find(S.cards,i).col--;save()}
+  else if(a==='cr'){find(S.cards,i).col++;save()}
+  else if(a==='cd'){S.cards=S.cards.filter(function(k){return k.id!=i});save()}
+  R()};
+R();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+</script>
+</body>
+</html>
